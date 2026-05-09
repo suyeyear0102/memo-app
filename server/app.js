@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const fs = require('fs');
-const path = require('path');
+const mongoose = require('mongoose');
 require('dotenv').config();
 
 const memoRoutes = require('./routes/memoRoutes');
@@ -11,19 +10,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 用本地 JSON 文件代替 MongoDB
-const dataFilePath = path.join(__dirname, 'data.json');
-
-// 如果 data.json 不存在，创建空数组
-if (!fs.existsSync(dataFilePath)) {
-  fs.writeFileSync(dataFilePath, '[]', 'utf8');
-}
-
-// 把文件路径注入到每个请求中，让控制器能读写
-app.use((req, res, next) => {
-  req.dataFilePath = dataFilePath;
-  next();
-});
+// 连接 MongoDB Atlas
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('✅ 数据库连接成功'))
+  .catch(err => console.error('❌ 数据库连接失败:', err));
 
 app.use('/api/memos', memoRoutes);
 
